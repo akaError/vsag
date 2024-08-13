@@ -188,6 +188,7 @@ int create_index(VectorIndexPtr& index_handler, IndexType index_type,
 {   
     vsag::logger::debug("TRACE LOG[create_index]:");
     vsag::ErrorType error = vsag::ErrorType::UNKNOWN_ERROR;
+    int ret = 0;
     if (dtype == nullptr || metric == nullptr) {
         vsag::logger::debug("   null pointer addr, dtype:{}, metric:{}", (void*)dtype, (void*)metric);
         return static_cast<int>(error);
@@ -233,15 +234,20 @@ int create_index(VectorIndexPtr& index_handler, IndexType index_type,
             vsag::logger::debug("   fail to create hnsw index , index parameter:{}", index_parameters.dump());
         }
     } else {
-        vsag::logger::debug("   fail to create hnsw index , index type not supported:{}", static_cast<int>(index_type));
         error = vsag::ErrorType::UNSUPPORTED_INDEX;
+        vsag::logger::debug("   fail to create hnsw index , index type not supported:{}", static_cast<int>(index_type));
     }
-    return static_cast<int>(error);
+    ret = static_cast<int>(error);
+    if (ret != 0) {
+        vsag::logger::error("   create index error happend, ret={}", static_cast<int>(error));
+    }
+    return ret;
 }
 
 int build_index(VectorIndexPtr& index_handler,float* vector_list, int64_t* ids, int dim, int size) {
     vsag::logger::debug("TRACE LOG[build_index]:");
     vsag::ErrorType error = vsag::ErrorType::UNKNOWN_ERROR;
+    int ret =  0;
     if (index_handler == nullptr || vector_list == nullptr || ids == nullptr) {
         vsag::logger::debug("   null pointer addr, index_handler:{}, ids:{}, ids:{}",
                                                    (void*)index_handler, (void*)vector_list, (void*)ids);
@@ -255,13 +261,18 @@ int build_index(VectorIndexPtr& index_handler,float* vector_list, int64_t* ids, 
     ->Ids(ids)
     ->Float32Vectors(vector_list)
     ->Owner(false);
-    return hnsw->build_index(dataset);
+    ret = hnsw->build_index(dataset);
+    if (ret != 0) {
+        vsag::logger::error("   build index error happend, ret={}", ret);
+    }
+    return ret;
 }
 
 
 int add_index(VectorIndexPtr& index_handler,float* vector, int64_t* ids, int dim, int size) {
     vsag::logger::debug("TRACE LOG[add_index]:");
     vsag::ErrorType error = vsag::ErrorType::UNKNOWN_ERROR;
+    int ret = 0;
     if (index_handler == nullptr || vector == nullptr || ids == nullptr) {
         vsag::logger::debug("   null pointer addr, index_handler:{}, ids:{}, ids:{}",
                                                    (void*)index_handler, (void*)vector, (void*)ids);
@@ -276,7 +287,11 @@ int add_index(VectorIndexPtr& index_handler,float* vector, int64_t* ids, int dim
             ->Ids(ids)
             ->Float32Vectors(vector)
             ->Owner(false);
-    return hnsw->add_index(incremental);
+    ret = hnsw->add_index(incremental);
+    if (ret != 0) {
+        vsag::logger::error("   add index error happend, ret={}", ret);
+    }
+    return ret;
 }
 
 int get_index_number(VectorIndexPtr& index_handler, int64_t &size) {
@@ -295,6 +310,7 @@ int knn_search(VectorIndexPtr& index_handler,float* query_vector,int dim, int64_
                void* invalid) {
     vsag::logger::debug("TRACE LOG[knn_search]:");
     vsag::ErrorType error = vsag::ErrorType::UNKNOWN_ERROR;
+    int ret = 0;
     if (index_handler == nullptr || query_vector == nullptr) {
         vsag::logger::debug("   null pointer addr, index_handler:{}, query_vector:{}",
                                                    (void*)index_handler, (void*)query_vector);
@@ -309,12 +325,17 @@ int knn_search(VectorIndexPtr& index_handler,float* query_vector,int dim, int64_
     HnswIndexHandler* hnsw = static_cast<HnswIndexHandler*>(index_handler);
     auto query = vsag::Dataset::Make();
     query->NumElements(1)->Dim(dim)->Float32Vectors(query_vector)->Owner(false);
-    return hnsw->knn_search(query, topk, search_parameters.dump(), dist, ids, result_size, filter);
+    ret = hnsw->knn_search(query, topk, search_parameters.dump(), dist, ids, result_size, filter);
+    if (ret != 0) {
+        vsag::logger::error("   knn search error happend, ret={}", ret);
+    }
+    return ret;
 }
 
 int serialize(VectorIndexPtr& index_handler, const std::string dir) {
     vsag::logger::debug("TRACE LOG[serialize]:");
     vsag::ErrorType error = vsag::ErrorType::UNKNOWN_ERROR;
+    int ret =  0;
     if (index_handler == nullptr) {
         vsag::logger::debug("   null pointer addr, index_handler:{}", (void*)index_handler);
         return static_cast<int>(error);
@@ -338,12 +359,17 @@ int serialize(VectorIndexPtr& index_handler, const std::string dir) {
     } else {
         error = bs.error().type;
     }
-    return static_cast<int>(error);
+    ret = static_cast<int>(error);
+    if (ret != 0) {
+        vsag::logger::error("   serialize error happend, ret={}", ret);
+    }
+    return ret;
 }
 
 int fserialize(VectorIndexPtr& index_handler, std::ostream& out_stream) {
     vsag::logger::debug("TRACE LOG[fserialize]:");
     vsag::ErrorType error = vsag::ErrorType::UNKNOWN_ERROR;
+    int ret = 0;
     if (index_handler == nullptr) {
         vsag::logger::debug("   null pointer addr, index_handler:{}", (void*)index_handler);
         return static_cast<int>(error);
@@ -354,12 +380,17 @@ int fserialize(VectorIndexPtr& index_handler, std::ostream& out_stream) {
     } else {
         error = bs.error().type;
     }
-    return static_cast<int>(error);
+    ret = static_cast<int>(error);
+    if (ret != 0) {
+        vsag::logger::error("   fserialize error happend, ret={}", ret);
+    }
+    return ret;
 }
 
 int fdeserialize(VectorIndexPtr& index_handler, std::istream& in_stream) {
     vsag::logger::debug("TRACE LOG[fdeserialize]:");
     vsag::ErrorType error = vsag::ErrorType::UNKNOWN_ERROR;
+    int ret = 0;
     if (index_handler == nullptr) {
         vsag::logger::debug("   null pointer addr, index_handler:{}", (void*)index_handler);
         return static_cast<int>(error);
@@ -391,14 +422,19 @@ int fdeserialize(VectorIndexPtr& index_handler, std::istream& in_stream) {
     } else {
         error = bs.error().type;
     }
-    return static_cast<int>(error);
+    ret = static_cast<int>(error);
+    if (ret != 0) {
+        vsag::logger::error("   fdeserialize error happend, ret={}", ret);
+    }
+    return ret;
 }
 
 int deserialize_bin(VectorIndexPtr& index_handler,const std::string dir) {
     vsag::logger::debug("TRACE LOG[deserialize]:");
     vsag::ErrorType error = vsag::ErrorType::UNKNOWN_ERROR;
+    int ret = 0;
     if (index_handler == nullptr) {
-        vsag::logger::debug("   null pointer addr, index_handler:{}", (void*)index_handler);
+        vsag::logger::debug("   null pointer addr, index_handler={}", (void*)index_handler);
         return static_cast<int>(error);
     }
     HnswIndexHandler* hnsw = static_cast<HnswIndexHandler*>(index_handler);

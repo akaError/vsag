@@ -20,12 +20,14 @@ int64_t example() {
     int ef_construction = 100;
     DefaultAllocator default_allocator;
     const char* const METRIC_L2 = "l2";
+    const char* const METRIC_IP = "ip";
+
     const char* const DATATYPE_FLOAT32 = "float32";
     void * test_ptr = default_allocator.Allocate(10);
     int ret_create_index = obvectorlib::create_index(index_handler,
                                                      obvectorlib::HNSW_TYPE,
                                                      DATATYPE_FLOAT32,
-                                                     METRIC_L2,
+                                                     METRIC_IP,
                                                      dim,
                                                      max_degree,
                                                      ef_construction,
@@ -40,7 +42,7 @@ int64_t example() {
     rng.seed(47);
     std::uniform_real_distribution<> distrib_real;
     for (int64_t i = 0; i < num_vectors; ++i) {
-        ids[i] = i;
+        ids[i] = i*2;
     }
     for (int64_t i = 0; i < dim * num_vectors; ++i) {
         vectors[i] = distrib_real(rng);
@@ -58,7 +60,7 @@ int64_t example() {
     }
     auto ids2 = new int64_t[inc_num];
     for (int64_t i = 0; i < inc_num; ++i) {
-        ids2[i] = num_size+i;
+        ids2[i] = i*2+1;
     }
     
     int ret_add_index = obvectorlib::add_index(index_handler, inc, ids2, dim,inc_num);
@@ -82,18 +84,20 @@ int64_t example() {
 
     roaring::api::roaring64_bitmap_t* r1 = roaring::api::roaring64_bitmap_create();
 
-    roaring::api::roaring64_bitmap_add(r1, 999);
-       roaring::api::roaring64_bitmap_add(r1, 1169);
-       roaring::api::roaring64_bitmap_add(r1, 1285);
+    //roaring::api::roaring64_bitmap_add(r1, 18);
+      // roaring::api::roaring64_bitmap_add(r1, 1169);
+       //roaring::api::roaring64_bitmap_add(r1, 1285);
 
     int ret_knn_search = obvectorlib::knn_search(index_handler, vectors+dim*(num_vectors-1), dim, 10,
                                                  result_dist,result_ids,result_size, 
                                                  100, r1);
     const std::string dir = "./";
-    //int ret_serialize_single = obvectorlib::serialize(index_handler,dir);
-    //int ret_deserilize_single_bin = 
-      //              obvectorlib::deserialize_bin(index_handler,dir);
-
+    int ret_serialize_single = obvectorlib::serialize(index_handler,dir);
+    int ret_deserilize_single_bin = 
+                    obvectorlib::deserialize_bin(index_handler,dir);
+ ret_knn_search = obvectorlib::knn_search(index_handler, vectors+dim*(num_vectors-1), dim, 10,
+                                                 result_dist,result_ids,result_size, 
+                                                 100, r1);
      obvectorlib::delete_index(index_handler);
     free(test_ptr);
     return 0;
@@ -256,7 +260,7 @@ int
 main() {
     //std::cout << "version: " << vsag::version() << std::endl;
     example();
-//example_so();
+    //example_so();
     //std::cout << "version: " << vsag::version() << std::endl;
     return 0;
 }

@@ -315,4 +315,4 @@ target_include_directories(ob_vsag_static PUBLIC
                            ${VSAG_LIB_DIR}/fmt-src/include)
 add_dependencies(ob_vsag vsag_static)
 
-add_subdirectory (ob_example)
+#add_subdirectory (ob_example)

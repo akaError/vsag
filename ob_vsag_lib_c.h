@@ -64,13 +64,13 @@ extern int serialize_c(VectorIndexPtr& index_handler, const std::string dir);
 typedef int (*deserialize_bin_ptr)(VectorIndexPtr& index_handler, const std::string dir);
 extern int deserialize_bin_c(VectorIndexPtr& index_handler, const std::string dir);
  
-extern int (*delete_index_ptr)(VectorIndexPtr& index_handler);
+typedef int (*delete_index_ptr)(VectorIndexPtr& index_handler);
 extern int delete_index_c(VectorIndexPtr& index_handler);
 
 typedef int (*fserialize_ptr)(VectorIndexPtr& index_handler, std::ostream& out_stream);
 extern int fserialize_c(VectorIndexPtr& index_handler, std::ostream& out_stream);
 
-extern int (*fdeserialize_ptr)(VectorIndexPtr& index_handler, std::istream& in_stream);
+typedef int (*fdeserialize_ptr)(VectorIndexPtr& index_handler, std::istream& in_stream);
 extern int fdeserialize_c(VectorIndexPtr& index_handler, std::istream& in_stream);
 
 
