@@ -79,12 +79,13 @@ public:
                 const std::function<bool(int64_t)>& filter);
   std::shared_ptr<vsag::Index>& get_index() {return index_;}
   void set_index(std::shared_ptr<vsag::Index> hnsw) {index_ = hnsw;}
+  vsag::Allocator* get_allocator() {return allocator_;}
   inline bool get_use_static() {return use_static_;}
   inline int get_max_degree() {return max_degree_;}
   inline int get_ef_construction() {return ef_construction_;}
   inline int get_ef_search() {return ef_search_;}
   inline int get_dim() {return dim_;}
-
+  
 private:
   bool is_created_;
   bool is_build_;
@@ -227,7 +228,7 @@ int create_index(VectorIndexPtr& index_handler, IndexType index_type,
                                                                 hnsw,
                                                                 vsag_allocator);
             index_handler = static_cast<VectorIndexPtr>(hnsw_index);
-            vsag::logger::debug("   success to create hnsw index , index parameter:{}",index_parameters.dump());
+            vsag::logger::debug("   success to create hnsw index , index parameter:{}, allocator addr:{}",index_parameters.dump(), (void*)vsag_allocator);
             return 0;
         } else {
             error = index.error().type;
@@ -408,7 +409,8 @@ int fdeserialize(VectorIndexPtr& index_handler, std::istream& in_stream) {
                                 {"use_static", use_static}};
     nlohmann::json index_parameters{
         {"dtype", "float32"}, {"metric_type", "l2"}, {"dim", dim}, {"hnsw", hnsw_parameters}};
-    if (auto index = vsag::Factory::CreateIndex("hnsw", index_parameters.dump());
+    vsag::logger::debug("   Deserilize hnsw index , index parameter:{}, allocator addr:{}",index_parameters.dump(),(void*)hnsw->get_allocator());
+    if (auto index = vsag::Factory::CreateIndex("hnsw", index_parameters.dump(), hnsw->get_allocator());
         index.has_value()) {
         hnsw_index = index.value();
     } else {
@@ -468,8 +470,9 @@ int deserialize_bin(VectorIndexPtr& index_handler,const std::string dir) {
                                 {"use_static", use_static}};
     nlohmann::json index_parameters{
         {"dtype", "float32"}, {"metric_type", "l2"}, {"dim", dim}, {"hnsw", hnsw_parameters}};
+    vsag::logger::debug("   Deserilize hnsw index , index parameter:{}, allocator addr:{}",index_parameters.dump(),(void*)hnsw->get_allocator());
     std::shared_ptr<vsag::Index> hnsw_index;
-    if (auto index = vsag::Factory::CreateIndex("hnsw", index_parameters.dump());
+    if (auto index = vsag::Factory::CreateIndex("hnsw", index_parameters.dump(),hnsw->get_allocator());
         index.has_value()) {
         hnsw_index = index.value();
     } else {
@@ -486,6 +489,7 @@ int delete_index(VectorIndexPtr& index_handler) {
     vsag::logger::debug("   delete index handler addr {} : hnsw index use count {}",(void*)static_cast<HnswIndexHandler*>(index_handler)->get_index().get(),static_cast<HnswIndexHandler*>(index_handler)->get_index().use_count());
     if (index_handler != NULL) {
         delete static_cast<HnswIndexHandler*>(index_handler);
+        index_handler = NULL;
     }
     return 0;
 }
