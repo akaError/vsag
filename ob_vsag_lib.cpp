@@ -415,16 +415,17 @@ int fdeserialize(VectorIndexPtr& index_handler, std::istream& in_stream) {
         hnsw_index = index.value();
     } else {
         error = index.error().type;
+        ret = static_cast<int>(error);
     }
-    if (static_cast<int>(error) != 0) {
+    if (ret != 0) {
 
     } else if (auto bs = hnsw_index->Deserialize(in_stream); bs.has_value()) {
         hnsw->set_index(hnsw_index);
         return 0;
     } else {
         error = bs.error().type;
+        ret = static_cast<int>(error);
     }
-    ret = static_cast<int>(error);
     if (ret != 0) {
         vsag::logger::error("   fdeserialize error happend, ret={}", ret);
     }
